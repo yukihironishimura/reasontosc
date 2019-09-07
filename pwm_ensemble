@@ -1,0 +1,35 @@
+////////// pulse width modulation " ensemble" ////////////
+
+
+(
+SynthDef(\pwm_ensemble, { arg midi = 60, amp = 0.1;
+	var modrate, filt, snd1, snd2, snd3, snd, env, out;
+
+	modrate = midi.linlin( 36, 84, 0.3, 4 );
+	filt = midi.midicps *  8;
+
+	snd1 = Pulse.ar(midi.midicps + 0.03, 0.2 + LFTri.kr( modrate ).range(-0.05, 0.05) );
+	snd2 = Pulse.ar(midi.midicps -0.03, 0.8 + LFTri.kr( modrate * 1.05 ).range(0.15, -0.15) );
+	snd3 = Pulse.ar( ( midi - 12).midicps, 0.5 + LFTri.kr( modrate ).range(-0.08, 0.08) );
+    snd = snd1 + snd2 + snd3;
+
+	env = EnvGen.kr( Env.linen( 0.15, 1 , 1.3,1 , \squared), levelScale: amp *0.3, doneAction: 2);
+
+	out = RLPF.ar( RLPF.ar( snd, filt ), filt  );
+
+	out = out * env;
+
+	Out.ar( [0,1] ,out);  // or add riverb FreeVerb.ar( out, 0.5, 0.5, 0.7)
+} ).add;
+)
+
+Synth(\pwm_ensemble,[\amp, 0.1]);
+
+( //E major7
+Synth(\pwm_ensemble, [\midi,52,\amp,0.2]);
+Synth(\pwm_ensemble, [\midi,59, \amp,0.1]);
+Synth(\pwm_ensemble, [\midi,68,\amp,0.1]);
+Synth(\pwm_ensemble, [\midi,75,\amp,0.1]);
+)
+
+
