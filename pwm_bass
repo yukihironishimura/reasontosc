@@ -1,0 +1,22 @@
+/////////// pulse width modulation " Bass"/////////////
+
+
+(
+SynthDef(\pwm_bass, {arg midi = 36, amp = 0.1;
+	var  note, modrate, filt, mod, env, snd, out;
+
+    note = midi.midicps;
+	modrate = midi.linlin( 24, 50, 0.3, 3 );
+	filt = note * 28;
+
+	 mod = LFTri.kr( modrate ).range(-0.1,0.1);
+	 env = EnvGen.kr( Env.linen(0.03, 0.8, 0.3, amp), doneAction: 2);
+
+	 snd = Pulse.ar( note, 0.2 + mod);
+	 out = RLPF.ar( RLPF.ar( snd, filt ), filt )  * env;
+
+	 Out.ar( [0,1], out);
+} ).add;
+)
+
+Synth(\pwm_bass, [\amp, 0.1] );
