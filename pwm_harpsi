@@ -1,0 +1,27 @@
+////////// pulse width modulation " harpsi chord" ////////////
+
+
+(
+SynthDef(\pwm_harpsi, {arg midi = 72, amp = 0.3;
+	var modrate, note, filt, snd, env, out ;
+
+	modrate = midi.linlin( 60, 96, 0.5, 2.5 );
+    note = midi.midicps;
+    filt = note * 10;
+
+	snd = Pulse.ar(midi.midicps, 0.2 + LFTri.kr( modrate ).range( -0.06, 0.06) );
+	env = EnvGen.kr( Env.perc(0.01, 1.1 ), levelScale: amp, doneAction: 2);
+
+    out =HPF.ar( snd, filt ) * env;
+	Out.ar( [ 0, 1] , out);
+} ).add;
+)
+
+Synth(\pwm_harpsi);
+
+( // C#m b5 - Cm b5
+Pbind(\instrument, \pwm_harpsi,
+	　　\dur,0.6, \midi, Pseq( [ 1, 4, 7, 0, 3, 6 ] + 72, inf ),　\amp, Pseq([ 0.5,0.4,0.4 ], inf )
+　　).play;
+)
+
