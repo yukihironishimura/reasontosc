@@ -1,0 +1,42 @@
+////// fat bass //////////
+
+(
+SynthDef(\fat_bass, {arg bus, midi = 43, amp = 0.5, sus = 2
+	;
+	var filtoff, snd1, snd2, env, out;
+
+	filtoff = amp.linlin(0.05, 0.3, 0.7, 1.5);
+
+	snd1 = DelayN.ar( Saw.ar(midi.midicps ), 0.1, 0.03) - Saw.ar(midi.midicps);
+	snd2 = Saw.ar( ( midi - 12).midicps);
+
+	env = EnvGen.kr( Env.perc(0.01, sus * 1.1) ,levelScale: amp, doneAction: 2);
+	out = LPF.ar( snd1 + snd2,  EnvGen.kr( Env.perc(0.01, sus) ,levelBias: -5, levelScale: 100) +In.kr(bus) * filtoff  );
+	out = out * env;
+
+	Out.ar( 0, out);
+} ).add;
+
+
+SynthDef(\filter_control, { arg bus;
+	Out.kr(bus, LFTri.kr(0.7).range(0,4000) );
+} ).add;
+
+b = Bus.control(s,1);
+)
+
+(
+Synth(\filter_control, [\bus, b], addAction: \addToTail );
+Synth(\fat_bass, [\bus, b]);
+)
+
+(
+Synth(\filter_control, [\bus, b], addAction: \addToTail );
+
+Pbind(\instrument, \fat_bass,
+	      \bus, b,
+	　　\dur, 2.3,//Prand( [ 1.75, 0.25, 0.5,0.5 ] , inf ),
+	      \midi, Prand( [ 0, 7, 12,  4,  11 , 15, 19, 2 ] +36, inf ),
+	\amp, Pwrand( [ 0.3, 0.1, 0.05, 0.4, 0.2], [ 0.3, 0.1, 0.1, 0.3, 0.2 ], inf)
+　　).play;
+)
